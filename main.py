@@ -3,9 +3,10 @@
 # crypto related information and rate them
 import asyncio
 
-from parser import extract_elements, fetch_and_parse, coinmarket_cap_stripper
+from parser import Parser
 
-from telegram_bot import init_bot, send_message
+
+# from telegram_bot import init_bot
 
 
 # from chatgpt_translation import initiate as initiate_gpt, translate
@@ -20,21 +21,20 @@ def main():
     channel_id = '2052460067'
     url = 'https://coinmarketcap.com/headlines/news/'
 
-    try:
-        init_bot(token=telegram_token)
-        send_message(channel_id, 'testing')
-
-    except Exception as e:
-        print('exception happened on send_message')
+    # try:
+    #     init_bot(token=telegram_token)
+    #     send_message(channel_id, 'testing')
+    #
+    # except Exception as e:
+    #     print('exception happened on send_message')
 
     # Fetch and parse the website
     try:
-        returned_soup = fetch_and_parse(url)
-        if returned_soup:
-            news = coinmarket_cap_stripper(returned_soup)
-
-    except Exception as e:
-        print('Something went wrong')
+        parser = Parser(url)
+        news = parser.coinmarket_cap_stripper()
+        print('success')
+    except RuntimeError as e:
+        print(e)
 
     # asyncio.run(run_telegram_bot(token=telegram_token, channel_id=channel_id))
 
