@@ -5,8 +5,7 @@ import asyncio
 
 from parser import Parser
 
-
-# from telegram_bot import init_bot
+from telegram_bot import NovncyBot
 
 
 # from chatgpt_translation import initiate as initiate_gpt, translate
