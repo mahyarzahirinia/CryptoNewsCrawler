@@ -1,7 +1,6 @@
 import asyncio
 
 from deepdiff import DeepDiff
-import array
 
 import requests
 from requests.exceptions import RequestException
@@ -10,9 +9,18 @@ from colorama import Fore, Style
 
 
 class Parser:
-    def __init__(self, url):
+    def __init__(self, url, interval):
+        self._interval = interval
         self._url = url
         self._soup = None
+        self._curr_soup = None
+        self._prev_soup = None
+        self._curr_list = None
+        self._prev_list = None
+        # the init
+        self._curr_soup = self.initialize_soup()
+        self._curr_list = self.coinmarket_cap_stripper(self._curr_soup)
+        self.get_update(self._interval)
 
     def initialize_soup(self):
         try:
@@ -23,25 +31,18 @@ class Parser:
             response.raise_for_status()
 
             # Parse the HTML using BeautifulSoup
-            self._soup = BeautifulSoup(response.text, 'html.parser')
+            return BeautifulSoup(response.text, 'html.parser')
         except RequestException as e:
             # If an error occurs during the request, print the error message
             raise RuntimeError(f"{Fore.RED}Failed to fetch the page: {e}{Style.RESET_ALL}")
 
-    def extract_elements(self, element_name, use_class=True, use_id=False):
-        elements = None
-        if use_class:
-            elements = self._soup.find('div', class_=element_name)
-        if use_id:
-            elements = self._soup.find('div', id=element_name)
-        return elements
-
-    def coinmarket_cap_stripper(self, soup_instance):
+    def coinmarket_cap_stripper(self, soup_instance: BeautifulSoup):
         # all the news items have parent div with class of uikit-row
         if soup_instance is None:
             raise TypeError(f"{Fore.RED}Error: soup instance is None{Style.RESET_ALL}")
 
-        soup_instance = self._soup
+        self._curr_soup = self.initialize_soup()
+        soup_instance = self._curr_soup
         all_news = []
         all_sections = soup_instance.find_all('div', class_="uikit-row")
         if isinstance(all_sections, list):
@@ -88,7 +89,8 @@ class Parser:
                 print(f"{Fore.RED}error processing news sections {index}: {e}{Style.RESET_ALL}")
         return all_news
 
-    def updater(self, current_news: list, previous_news: list) -> dict:
+    @staticmethod
+    def find_diff(current_news: list, previous_news: list) -> dict:
         isupdate = False
         final = None
         if not isinstance(current_news, list) or not isinstance(previous_news, list):
@@ -104,12 +106,17 @@ class Parser:
         # format both side of conditional to be the same for return
         return {'isupdate': isupdate, 'diff': final}
 
-    async def timer(self, duration, func, *args, **kwargs):
+    @staticmethod
+    async def timer(duration, func, *args, **kwargs):
         await asyncio.sleep(duration)
         await func(*args, **kwargs)
 
-    async def get_update(self, time_in_seconds: int):
-        if time_in_seconds <= 0:
+    async def get_update(self):
+        if self._interval <= 0:
             return None
 
-        await self.timer(time_in_seconds, self.updater, )
+        self._prev_soup = self._curr_soup
+        self._curr_soup = self.initialize_soup()
+        self._prev_list = self._curr_list
+        self._curr_list = self.coinmarket_cap_stripper(self._curr_soup)
+        await self.timer(self._interval, self.find_diff, self._curr_list, self._prev_list)
