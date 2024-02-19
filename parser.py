@@ -6,6 +6,7 @@ import requests
 
 from chatgpt_translation import ChatGPTTranslator
 from config import bot_token, channel_name
+from gemini_translation import GeminiTranslator
 from telegram_bot import NovncyBot
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
@@ -116,7 +117,7 @@ class Parser:
                           f" \n⏰ {raw_post['time']} \n\n{raw_post['overview']}"
                           f" \n💰 source: {raw_post['source']}"
                           f" \n🔬<a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>")
-        translator = ChatGPTTranslator()
+        translator = GeminiTranslator()
         translated_post = translator.translate(formatted_post)
 
         # await self._bot.send_message(channel_name=channel_name, message=formatted_post)
