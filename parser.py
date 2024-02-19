@@ -3,6 +3,8 @@ import asyncio
 from deepdiff import DeepDiff
 
 import requests
+
+from chatgpt_translation import ChatGPTTranslator
 from config import bot_token, channel_name
 from telegram_bot import NovncyBot
 from requests.exceptions import RequestException
@@ -110,13 +112,15 @@ class Parser:
         return returnee
 
     async def __poster(self, index: int, raw_post: dict) -> None:
-        formated_post = (f"<b>{raw_post['title_text']}</b>"
-                         f" \n⏰ {raw_post['time']} \n\n{raw_post['overview']}"
-                         f" \n💰 source: {raw_post['source']}"
-                         f" \n🔬<a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>")
+        formatted_post = (f"<b>{raw_post['title_text']}</b>"
+                          f" \n⏰ {raw_post['time']} \n\n{raw_post['overview']}"
+                          f" \n💰 source: {raw_post['source']}"
+                          f" \n🔬<a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>")
+        translator = ChatGPTTranslator()
+        translated_post = translator.translate(formatted_post)
 
-        # await self._bot.send_message(channel_name=channel_name, message=formated_post)
-        await self._bot.send_image(channel_name=channel_name, image_url=raw_post['image'], message=formated_post)
+        # await self._bot.send_message(channel_name=channel_name, message=formatted_post)
+        await self._bot.send_image(channel_name=channel_name, image_url=raw_post['image'], message=translated_post)
 
     async def __compose(self):
         # Diffing and producing new news
