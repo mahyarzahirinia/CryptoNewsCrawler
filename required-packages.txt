@@ -1,0 +1,6 @@
+python-telegram-bot
+colorama
+deepdiff
+requests
+beautifulsoup4
+openai
