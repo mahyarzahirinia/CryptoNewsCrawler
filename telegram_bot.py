@@ -11,4 +11,4 @@ class NovncyBot:
         await self.bot.send_message(chat_id=channel_name, text=message, parse_mode=ParseMode.HTML)
 
     async def send_image(self, channel_name: str, image_url: str, message: str):
-        await self.bot.send_photo(chat_id=channel_name, photo=image_url, caption=message)
+        await self.bot.send_photo(chat_id=channel_name, photo=image_url, caption=message, parse_mode=ParseMode.HTML)
