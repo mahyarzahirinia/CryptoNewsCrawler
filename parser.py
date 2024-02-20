@@ -118,7 +118,8 @@ class Parser:
                           f" \n💰 source: {raw_post['source']}"
                           f" \n🔬<a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>")
 
-        translated_post = translate(text=formatted_post)
+        translator = ChatGPTTranslator()
+        translated_post = translator.translate(text=formatted_post)
 
         # await self._bot.send_message(channel_name=channel_name, message=formatted_post)
         await self._bot.send_image(channel_name=channel_name, image_url=raw_post['image'], message=translated_post)

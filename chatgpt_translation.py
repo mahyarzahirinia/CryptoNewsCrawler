@@ -11,8 +11,8 @@ class ChatGPTTranslator:
     def translate(self, text, target_language="Persian", except_following="urls"):
         try:
             response = self.client.chat.completions.create(
-                model="gpt-3.5-turbo-0125",
-                response_format={"type": "json_object"},
+                model="gpt-3.5-turbo",
+                response_format={"type": "text"},
                 messages=[
                     {"role": "system",
                      "content": f"Translate the following text to {target_language} except the {except_following} "
@@ -20,7 +20,6 @@ class ChatGPTTranslator:
                     {"role": "user", "content": text}
                 ]
             )
-            print("test")
             return response.choices[0].message.content
         except Exception as e:
             raise Exception(f"{Fore.RED}{e}{Style.RESET_ALL}")
