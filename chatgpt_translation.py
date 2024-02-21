@@ -8,7 +8,7 @@ class ChatGPTTranslator:
     def __init__(self):
         self.client = OpenAI(api_key=chatgpt_token)
 
-    def translate(self, text, target_language="Persian", except_following="urls"):
+    def translate(self, text, target_language="Persian", except_following="urls and numbers"):
         try:
             response = self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
