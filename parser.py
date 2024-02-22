@@ -5,10 +5,13 @@ from deepdiff import DeepDiff
 import requests
 
 from chatgpt_translation import ChatGPTTranslator
-from config import bot_token, channel_name
+from config import bot_token, channel_name, chrome_driver_path
 from gemini_translation import translate
 from telegram_bot import NovncyBot
 from requests.exceptions import RequestException
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
 from colorama import Fore, Style
 
@@ -18,7 +21,7 @@ class Parser:
         self.__counter = 0
         self._interval = interval
         self._url = url
-        self._soup = None
+        self._wait = 12
         self._curr_soup = None
         self._prev_soup = None
         self._curr_list = None
@@ -26,29 +29,42 @@ class Parser:
         # the init
         self._bot = NovncyBot(token=bot_token)
         self._curr_soup = self.__initialize_soup()
-        self._curr_list = self.__coinmarket_cap_stripper(self._curr_soup)
+        self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
 
     def __initialize_soup(self):
         try:
-            # Send a GET request to the URL
-            response = requests.get(self._url)
+            # Chrome options to run in headless mode
+            chrome_options = Options()
+            chrome_options.add_argument('--headless')  # Run in headless mode
+            chrome_options.add_argument('--no-sandbox')  # Necessary for running in a Docker container, for example
+            chrome_options.add_argument(
+                '--disable-dev-shm-usage')  # Necessary for running in a Docker container, for example
 
-            # Check if the request was successful (status code 200)
-            response.raise_for_status()
+            # Initialize Chrome web driver
+            service = Service(chrome_driver_path)
+            chrome = webdriver.Chrome(service=service, options=chrome_options)
+            chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
+
+            chrome.get(self._url)
+            # Wait for JavaScript to render the page content
+            # You might need to adjust the waiting time according to the page's loading speed
+            chrome.implicitly_wait(self._wait)
+
+            # Get page source after JavaScript rendering
+            page_source = chrome.page_source
 
             # Parse the HTML using BeautifulSoup
-            return BeautifulSoup(response.text, 'html.parser')
+            return BeautifulSoup(page_source, 'html.parser')
         except RequestException as e:
             # If an error occurs during the request, print the error message
             raise RuntimeError(f"{Fore.RED}Failed to fetch the page: {e}{Style.RESET_ALL}")
 
-    def __coinmarket_cap_stripper(self, soup_instance: BeautifulSoup):
+    @staticmethod
+    def __coinmarketcap_stripper(soup_instance: BeautifulSoup):
         # all the news items have parent div with class of uikit-row
         if soup_instance is None:
             raise TypeError(f"{Fore.RED}Error: soup instance is None{Style.RESET_ALL}")
 
-        self._curr_soup = self.__initialize_soup()
-        soup_instance = self._curr_soup
         all_news = []
         all_sections = soup_instance.find_all('div', class_="uikit-row")
         if isinstance(all_sections, list):
@@ -93,6 +109,7 @@ class Parser:
             except (AttributeError, KeyError) as e:
                 # Handle the exception (e.g., print a message, log, or ignore)
                 print(f"{Fore.RED}error processing news sections {index}: {e}{Style.RESET_ALL}")
+        all_news.reverse()
         return all_news
 
     def __find_diff(self) -> dict:
@@ -149,5 +166,5 @@ class Parser:
             self._prev_soup = self._curr_soup
             self._curr_soup = self.__initialize_soup()
             self._prev_list = self._curr_list
-            self._curr_list = self.__coinmarket_cap_stripper(self._curr_soup)
+            self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
             await self.timer(self._interval, self.__compose)
