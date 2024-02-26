@@ -2,11 +2,9 @@ import asyncio
 
 from deepdiff import DeepDiff
 
-import requests
 
 from chatgpt_translation import ChatGPTTranslator
 from config import bot_token, channel_name, chrome_driver_path
-from gemini_translation import translate
 from telegram_bot import NovncyBot
 from requests.exceptions import RequestException
 from selenium import webdriver
@@ -17,11 +15,12 @@ from colorama import Fore, Style
 
 
 class Parser:
-    def __init__(self, url, interval):
+    def __init__(self, url, interval, latest=None):
         self.__counter = 0
         self._interval = interval
         self._url = url
-        self._wait = 12
+        self._wait = 20
+        self._latest = latest
         self._curr_soup = None
         self._prev_soup = None
         self._curr_list = None
@@ -114,7 +113,6 @@ class Parser:
 
     def __find_diff(self) -> dict:
         isupdated = False
-        result = None
         if not isinstance(self._curr_list, list) or not isinstance(self._prev_list, list):
             raise TypeError(f"{Fore.RED}either current or previous arguments is not list{Style.RESET_ALL}")
 
@@ -131,27 +129,32 @@ class Parser:
 
     async def __poster(self, index: int, raw_post: dict) -> None:
         formatted_post = (f"<b>{raw_post['title_text']}</b>"
-                          f" \n⏰ {raw_post['time']} \n\n{raw_post['overview']}"
-                          f" \n💰 source: {raw_post['source']}"
-                          f" \n🔬<a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>")
+                          f"\n⏰ {raw_post['time']}"
+                          f"\n\n{raw_post['overview']}"
+                          f"\n💰 source: {raw_post['source']}"
+                          f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>"
+                          f"\n ___________________"
+                          f"\n🇮🇷 @novncy")
 
         translator = ChatGPTTranslator()
         translated_post = translator.translate(text=formatted_post)
 
-        # await self._bot.send_message(channel_name=channel_name, message=formatted_post)
-        await self._bot.send_image(channel_name=channel_name, image_url=raw_post['image'], message=translated_post)
+        if raw_post["image"] is not None:
+            await self._bot.send_image(channel_name=channel_name, image_url=raw_post['image'], message=translated_post)
+        else:
+            await self._bot.send_message(channel_name=channel_name, message=translated_post)
 
     async def __compose(self):
-        # Diffing and producing new news
-        returnee2 = self.__find_diff()
-        result = returnee2["diff"]
-        isupdated = returnee2["isupdated"]
-        if self.__counter == 0:
-            for key, value in enumerate(result):
-                await self.__poster(index=key, raw_post=value)
-        elif isupdated:
-            await self._bot.send_message(channel_name=channel_name, message=result)
-        self.__counter += 1
+        result = self._curr_list
+        if self._latest is not None:
+            result = result[-self._latest:]
+        # if time of the last post was the same don't post it
+        # find the last post's time
+        if result[-1]['time'] == self._prev_list[-1]['time']:
+            return
+
+        for key, value in enumerate(result):
+            await self.__poster(index=key, raw_post=value)
 
     @staticmethod
     async def timer(duration, func, *args, **kwargs):

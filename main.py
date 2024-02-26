@@ -9,7 +9,7 @@ from parser import Parser
 
 async def main():
     try:
-        engine = Parser(url=url, interval=70)
+        engine = Parser(url=url, interval=70, latest=1)
         await engine.get_update()
 
     except Exception as e:

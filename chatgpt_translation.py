@@ -16,7 +16,7 @@ class ChatGPTTranslator:
                 messages=[
                     {"role": "system",
                      "content": f"Translate the following text to {target_language} except the {except_following}"
-                                f"and maintain the formatted string intact please: "},
+                                f"and maintain the formatted string intact please: \n"},
                     {"role": "user", "content": text}
                 ]
             )
