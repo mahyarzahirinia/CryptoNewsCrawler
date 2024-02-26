@@ -4,3 +4,5 @@ deepdiff
 requests
 beautifulsoup4
 openai
+selenium
+mitmproxy
