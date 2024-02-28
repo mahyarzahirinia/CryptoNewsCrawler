@@ -4,13 +4,13 @@ import requests
 from colorama import Fore, Style
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv('.env.development')
 
 
 class ChatGPTTranslator:
     def __init__(self):
         self._api_key = os.getenv("OPENAI_API_KEY")
-        self._endpoint = 'https://api.openai.com/v1/completions'
+        self._endpoint = 'https://api.openai.com/v1/chat/completions'
 
     def translate(self, text, target_language="Persian", except_following="urls and numbers"):
         try:
@@ -21,10 +21,15 @@ class ChatGPTTranslator:
             # Define the request payload
             data = {
                 'model': 'gpt-3.5-turbo',  # or another model like 'davinci'
-                'prompt': f"translate the text which is related to cryptocurrency news "
-                          f"to {target_language} "
-                          f"except for the {except_following} "
-                          f"and maintain the formatted string intact please\n"
+                'messages': [
+                    {"role": "system",
+                     "content": f"translate the text which is related to cryptocurrency news "
+                                f"to {target_language} "
+                                f"except for the {except_following} "
+                                f"and maintain the formatted string intact please: \n"},
+                    {"role": "user", "content": text}
+                ]
+
             }
 
             # Send the request

@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 from colorama import Fore, Style
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv('.env.development')
 
 
 class Parser:

@@ -6,7 +6,7 @@ from parser import Parser
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv('.env.development')
 
 
 async def main():
