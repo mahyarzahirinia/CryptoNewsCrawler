@@ -2,7 +2,6 @@ import asyncio
 
 from deepdiff import DeepDiff
 
-
 from chatgpt_translation import ChatGPTTranslator
 from config import bot_token, channel_name, chrome_driver_path
 from telegram_bot import NovncyBot
@@ -25,32 +24,31 @@ class Parser:
         self._prev_soup = None
         self._curr_list = None
         self._prev_list = None
-        # the init
+        # initializing the chrome driver
+        # Chrome options to run in headless mode
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')  # Run in headless mode
+        chrome_options.add_argument('--no-sandbox')  # Necessary for running in a Docker container, for example
+        chrome_options.add_argument(
+            '--disable-dev-shm-usage')  # Necessary for running in a Docker container, for example
+        self._chrome = webdriver.Chrome(options=chrome_options)
+        self._chrome.get("https://www.google.com/")
+        self._chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
+        # starting the bot and getting the first result
         self._bot = NovncyBot(token=bot_token)
         self._curr_soup = self.__initialize_soup()
         self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
 
     def __initialize_soup(self):
         try:
-            # Chrome options to run in headless mode
-            chrome_options = Options()
-            chrome_options.add_argument('--headless')  # Run in headless mode
-            chrome_options.add_argument('--no-sandbox')  # Necessary for running in a Docker container, for example
-            chrome_options.add_argument(
-                '--disable-dev-shm-usage')  # Necessary for running in a Docker container, for example
 
-            # Initialize Chrome web driver
-            service = Service(chrome_driver_path)
-            chrome = webdriver.Chrome(service=service, options=chrome_options)
-            chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
-
-            chrome.get(self._url)
+            self._chrome.get(self._url)
             # Wait for JavaScript to render the page content
             # You might need to adjust the waiting time according to the page's loading speed
-            chrome.implicitly_wait(self._wait)
+            self._chrome.implicitly_wait(self._wait)
 
             # Get page source after JavaScript rendering
-            page_source = chrome.page_source
+            page_source = self._chrome.page_source
 
             # Parse the HTML using BeautifulSoup
             return BeautifulSoup(page_source, 'html.parser')

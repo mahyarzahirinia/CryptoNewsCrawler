@@ -1,6 +1,6 @@
 bot_name = '@cryptocrawler_novncy_bot'
 bot_token = '6852678484:AAGMa2Vt5yma_L2-NztGB_0XC7v1jGzeHW0'
-channel_name = '@novncy'
+channel_name = '@test_novncy_bot_api'
 channel_id = '2052460067'
 url = 'https://coinmarketcap.com/headlines/news/'
 chatgpt_token = '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'
