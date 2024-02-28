@@ -1,12 +1,16 @@
 from colorama import Fore, Style
 from openai import OpenAI
 
-from config import chatgpt_token
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 class ChatGPTTranslator:
     def __init__(self):
-        self.client = OpenAI(api_key=chatgpt_token)
+        self.client = OpenAI()
+        # api_key=os.environ.get("OPENAI_API_KEY")
 
     def translate(self, text, target_language="Persian", except_following="urls and numbers"):
         try:

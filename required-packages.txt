@@ -1,9 +1,0 @@
-python-telegram-bot
-colorama
-deepdiff
-requests
-beautifulsoup4
-openai
-selenium
-mitmproxy
-urllib3==1.26.6

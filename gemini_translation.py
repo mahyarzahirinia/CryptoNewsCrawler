@@ -6,9 +6,13 @@ from colorama import Fore, Style
 from IPython.display import display
 from IPython.display import Markdown
 
-from config import gemini_token
 
-genai.configure(api_key=gemini_token)
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 model = genai.GenerativeModel('gemini-pro')
 
 

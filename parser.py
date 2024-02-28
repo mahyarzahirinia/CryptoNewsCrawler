@@ -1,9 +1,8 @@
 import asyncio
-
+import os
 from deepdiff import DeepDiff
 
 from chatgpt_translation import ChatGPTTranslator
-from config import bot_token, channel_name, chrome_driver_path
 from telegram_bot import NovncyBot
 from requests.exceptions import RequestException
 from selenium import webdriver
@@ -11,6 +10,9 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
 from colorama import Fore, Style
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Parser:
@@ -35,7 +37,7 @@ class Parser:
         self._chrome.get("https://www.google.com/")
         self._chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
         # starting the bot and getting the first result
-        self._bot = NovncyBot(token=bot_token)
+        self._bot = NovncyBot(token=os.getenv("BOT_TOKEN"))
         self._curr_soup = self.__initialize_soup()
         self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
 
@@ -138,9 +140,9 @@ class Parser:
         translated_post = translator.translate(text=formatted_post)
 
         if raw_post["image"] is not None:
-            await self._bot.send_image(channel_name=channel_name, image_url=raw_post['image'], message=translated_post)
+            await self._bot.send_image(channel_name=os.getenv("CHANNEL_NAME"), image_url=raw_post['image'], message=translated_post)
         else:
-            await self._bot.send_message(channel_name=channel_name, message=translated_post)
+            await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=translated_post)
 
     async def __compose(self):
         result = self._curr_list

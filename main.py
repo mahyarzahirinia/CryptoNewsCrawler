@@ -1,15 +1,17 @@
 import asyncio
-from telegram import Bot
+
 from colorama import Fore, Style
 
-from config import url
-from telegram_bot import NovncyBot
 from parser import Parser
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
 async def main():
     try:
-        engine = Parser(url=url, interval=70, latest=1)
+        engine = Parser(url=os.getenv("URL"), interval=70, latest=1)
         await engine.get_update()
 
     except Exception as e:
