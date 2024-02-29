@@ -33,8 +33,9 @@ class Parser:
         chrome_options.add_argument('--no-sandbox')  # Necessary for running in a Docker container, for example
         chrome_options.add_argument(
             '--disable-dev-shm-usage')  # Necessary for running in a Docker container, for example
-        self._chrome = webdriver.Chrome(options=chrome_options)
-        self._chrome.get("https://www.google.com/")
+        service = Service(os.getenv("CHROME_DRIVER"))
+        self._chrome = webdriver.Chrome(service=service, options=chrome_options)
+        # self._chrome.get("https://www.google.com/")
         self._chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
         # starting the bot and getting the first result
         self._bot = NovncyBot(token=os.getenv("BOT_TOKEN"))
