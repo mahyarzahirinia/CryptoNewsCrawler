@@ -132,23 +132,37 @@ class Parser:
         returnee = {"isupdated": isupdated, "diff": result}
         return returnee
 
-    async def __poster(self, index: int, raw_post: dict) -> None:
-        formatted_post = (f"<b>{raw_post['title_text']}</b>"
-                          f"\n⏰ {raw_post['time']}"
-                          f"\n\n{raw_post['overview']}"
-                          f"\n💰 source: {raw_post['source']}"
-                          f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>"
-                          f"\n ___________________"
-                          f"\n🇮🇷 @novncy")
+    async def __poster(self, index: int, raw_post: dict, rtl=True) -> None:
+        # determine rtl here to avoid duplications
+        # also
+        # you can add the unicode to each part here also
+        # if rtl:
 
         translator = ChatGPTTranslator()
-        translated_post = translator.translate(text=formatted_post)
+        response_dict = translator.translate(caption=raw_post['title_text'], body=raw_post['overview'])
+
+        if rtl:
+            formatted_post = (f"<b>{'\u200F'+response_dict['caption']}</b>"
+                              f"\n⏰ {raw_post['time']}"
+                              f"\n\n{'\u200F'+response_dict['main_body']}"
+                              f"\n💰 منبع: {raw_post['source']}"
+                              f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>مطالعه بیشتر...</a>"
+                              f"\n"
+                              f"\n🇮🇷 @NOVNCY")
+        else:
+            formatted_post = (f"<b>{response_dict['caption']}</b>"
+                              f"\n⏰ {raw_post['time']}"
+                              f"\n\n{response_dict['main_body']}"
+                              f"\n💰 source: {raw_post['source']}"
+                              f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>"
+                              f"\n ___________________"
+                              f"\n🇮🇷 @NOVNCY")
 
         if raw_post["image"] is not None:
             await self._bot.send_image(channel_name=os.getenv("CHANNEL_NAME"), image_url=raw_post['image'],
-                                       message=translated_post, rtl=True)
+                                       message=formatted_post)
         else:
-            await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=translated_post, rtl=True)
+            await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=formatted_post)
 
     async def __compose(self):
         result = self._curr_list
@@ -156,8 +170,8 @@ class Parser:
             result = result[-self._latest:]
         # if time of the last post was the same don't post it
         # find the last post's time
-        if result[-1]['time'] == self._prev_list[-1]['time']:
-            return
+        # if result[-1]['time'] == self._prev_list[-1]['time']:
+        #     return
 
         for key, value in enumerate(result):
             await self.__poster(index=key, raw_post=value)

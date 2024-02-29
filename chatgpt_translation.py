@@ -1,4 +1,5 @@
 import os
+import json
 
 import requests
 from colorama import Fore, Style
@@ -12,7 +13,7 @@ class ChatGPTTranslator:
         self._api_key = os.getenv("OPENAI_API_KEY")
         self._endpoint = 'https://api.openai.com/v1/chat/completions'
 
-    def translate(self, text, target_language="Persian", except_following="urls and numbers"):
+    def translate(self, caption, body, target_language="Persian", except_following="urls and numbers"):
         try:
             headers = {
                 'Content-Type': 'application/json',
@@ -21,15 +22,15 @@ class ChatGPTTranslator:
             # Define the request payload
             data = {
                 'model': 'gpt-3.5-turbo',  # or another model like 'davinci'
+                'response_format': {'type': 'json_object'},
                 'messages': [
                     {"role": "system",
-                     "content": f"translate the text which is related to cryptocurrency news "
+                     "content": f"translate the input from English"
                                 f"to {target_language} "
                                 f"except for the {except_following} "
-                                f"and maintain the formatted string intact please: \n"},
-                    {"role": "user", "content": text}
+                                f"and put the translated caption and main body seperated in a json"},
+                    {"role": "user", "content": caption+"\n\n"+body}
                 ]
-
             }
 
             # Send the request
@@ -38,8 +39,8 @@ class ChatGPTTranslator:
             # Get the response data
             response_data = response.json()
             # Extract the completion text from the response
-            completion_text = response_data['choices'][0]['message']['content'].strip()
-            return completion_text
+            response_dict = json.loads(response_data['choices'][0]['message']['content'])
+            return response_dict
 
         except Exception as e:
             raise Exception(f"{Fore.RED}{e}{Style.RESET_ALL}")
