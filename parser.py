@@ -1,5 +1,6 @@
 import asyncio
 import os
+import platform
 from deepdiff import DeepDiff
 
 from chatgpt_translation import ChatGPTTranslator
@@ -33,7 +34,10 @@ class Parser:
         chrome_options.add_argument('--no-sandbox')  # Necessary for running in a Docker container, for example
         chrome_options.add_argument(
             '--disable-dev-shm-usage')  # Necessary for running in a Docker container, for example
-        service = Service(os.getenv("CHROME_DRIVER"))
+        if platform.system() == 'Windows':
+            service = Service(os.getenv("CHROME_DRIVER_WINDOWS"))
+        else:
+            service = Service(os.getenv("CHROME_DRIVER_LINUX_MAC"))
         self._chrome = webdriver.Chrome(service=service, options=chrome_options)
         # self._chrome.get("https://www.google.com/")
         self._chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
