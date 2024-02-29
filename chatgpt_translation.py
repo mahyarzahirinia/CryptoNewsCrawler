@@ -38,7 +38,7 @@ class ChatGPTTranslator:
             # Get the response data
             response_data = response.json()
             # Extract the completion text from the response
-            completion_text = response_data['choices'][0]['text'].strip()
+            completion_text = response_data['choices'][0]['message']['content'].strip()
             return completion_text
 
         except Exception as e:
