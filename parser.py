@@ -141,9 +141,10 @@ class Parser:
         translated_post = translator.translate(text=formatted_post)
 
         if raw_post["image"] is not None:
-            await self._bot.send_image(channel_name=os.getenv("CHANNEL_NAME"), image_url=raw_post['image'], message=translated_post)
+            await self._bot.send_image(channel_name=os.getenv("CHANNEL_NAME"), image_url=raw_post['image'],
+                                       message=translated_post, rtl=True)
         else:
-            await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=translated_post)
+            await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=translated_post, rtl=True)
 
     async def __compose(self):
         result = self._curr_list
