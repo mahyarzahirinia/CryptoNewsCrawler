@@ -170,8 +170,9 @@ class Parser:
             result = result[-self._latest:]
         # if time of the last post was the same don't post it
         # find the last post's time
-        # if result[-1]['time'] == self._prev_list[-1]['time']:
-        #     return
+        # last_message = self._bot.get_message(channel_name=os.getenv("CHANNEL_NAME"))
+        if result[-1]['time'] == self._prev_list[-1]['time']:
+            return
 
         for key, value in enumerate(result):
             await self.__poster(index=key, raw_post=value)
