@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 import requests
 from colorama import Fore, Style
@@ -13,7 +13,7 @@ class ChatGPTTranslator:
         self._api_key = os.getenv("OPENAI_API_KEY")
         self._endpoint = 'https://api.openai.com/v1/chat/completions'
 
-    def translate(self, caption, body, target_language="Persian", except_following="urls and numbers"):
+    def translate(self, caption, body, target_language="Persian", except_following="URLs and numbers"):
         try:
             headers = {
                 'Content-Type': 'application/json',
@@ -42,5 +42,5 @@ class ChatGPTTranslator:
             response_dict = json.loads(response_data['choices'][0]['message']['content'])
             return response_dict
 
-        except Exception as e:
-            raise Exception(f"{Fore.RED}{e}{Style.RESET_ALL}")
+        except requests.RequestException as e:
+            raise Exception(f"{Fore.RED}chatgpt: {e}{Style.RESET_ALL}")

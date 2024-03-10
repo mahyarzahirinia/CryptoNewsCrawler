@@ -11,7 +11,7 @@ load_dotenv('.env.development')
 
 async def main():
     try:
-        engine = Parser(url=os.getenv("URL"), interval=70, latest=1)
+        engine = Parser(url=os.getenv("URL"), interval=60, latest=5)
         await engine.get_update()
 
     except Exception as e:

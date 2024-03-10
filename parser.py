@@ -1,7 +1,7 @@
 import asyncio
 import os
 import platform
-from deepdiff import DeepDiff
+from deepdiff import DeepDiff, DeepHash
 
 from chatgpt_translation import ChatGPTTranslator
 from telegram_bot import NovncyBot
@@ -18,7 +18,7 @@ load_dotenv('.env.development')
 
 class Parser:
     def __init__(self, url, interval, latest=None):
-        self.__counter = 0
+        self._counter = 0
         self._interval = interval
         self._url = url
         self._wait = 20
@@ -116,21 +116,18 @@ class Parser:
         all_news.reverse()
         return all_news
 
-    def __find_diff(self) -> dict:
-        isupdated = False
-        if not isinstance(self._curr_list, list) or not isinstance(self._prev_list, list):
-            raise TypeError(f"{Fore.RED}either current or previous arguments is not list{Style.RESET_ALL}")
+    def __find_diff(self) -> list:
+        current_list = self._curr_list[-self._latest:]
+        previous_list = self._prev_list[-self._latest:]
 
-        if self._curr_list == self._prev_list:
-            result = self._curr_list
-        else:
-            result = DeepDiff(self._curr_list, self._prev_list)
-            isupdated = True
-            # here make sure to construct the list desired
+        diff = DeepDiff(current_list, previous_list, ignore_order=True)
+        new_posts = []
 
-        # format both side of conditional to be the same for return
-        returnee = {"isupdated": isupdated, "diff": result}
-        return returnee
+        if 'iterable_item_added' in diff:
+            for added_item in diff['iterable_item_added']:
+                new_posts.append(added_item)
+
+        return new_posts
 
     async def __poster(self, index: int, raw_post: dict, rtl=True) -> None:
         # determine rtl here to avoid duplications
@@ -140,19 +137,20 @@ class Parser:
 
         translator = ChatGPTTranslator()
         response_dict = translator.translate(caption=raw_post['title_text'], body=raw_post['overview'])
+        title, body = response_dict
 
         if rtl:
-            formatted_post = (f"<b>{'\u200F'+response_dict['caption']}</b>"
+            formatted_post = (f"<b>{'\u200F' + response_dict[title]}</b>"
                               f"\n⏰ {raw_post['time']}"
-                              f"\n\n{'\u200F'+response_dict['main_body']}"
+                              f"\n\n{'\u200F' + response_dict[body]}"
                               f"\n💰 منبع: {raw_post['source']}"
                               f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>مطالعه بیشتر...</a>"
                               f"\n"
                               f"\n🇮🇷 @NOVNCY")
         else:
-            formatted_post = (f"<b>{response_dict['caption']}</b>"
+            formatted_post = (f"<b>{response_dict[title]}</b>"
                               f"\n⏰ {raw_post['time']}"
-                              f"\n\n{response_dict['main_body']}"
+                              f"\n\n{response_dict[body]}"
                               f"\n💰 source: {raw_post['source']}"
                               f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>read more...</a>"
                               f"\n ___________________"
@@ -165,21 +163,20 @@ class Parser:
             await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=formatted_post)
 
     async def __compose(self):
-        result = self._curr_list
-        if self._latest is not None:
-            result = result[-self._latest:]
-        # if time of the last post was the same don't post it
-        # find the last post's time
-        # last_message = self._bot.get_message(channel_name=os.getenv("CHANNEL_NAME"))
-        if result[-1]['time'] == self._prev_list[-1]['time']:
+        # if current list not empty, continue
+        if not self._curr_list:
             return
 
-        # check for repetitive results
-        # also check for empty lists
-        # find diffs
+        if self._counter != 0:
+            new_posts = self.__find_diff()
+            # if self._curr_list[-1]['time'] == self._prev_list[-1]['time']:
+            #     return
+        else:
+            new_posts = self._curr_list[-self._latest:]
+        self._counter += 1
 
-        # here you get result which is a list of posts that are about to be sent
-        for key, value in enumerate(result):
+        # post the result
+        for key, value in enumerate(new_posts):
             await self.__poster(index=key, raw_post=value)
 
     @staticmethod
