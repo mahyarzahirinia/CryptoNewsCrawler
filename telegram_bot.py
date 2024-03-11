@@ -2,6 +2,7 @@ import telegram
 from telegram import Bot
 from telegram.constants import ParseMode
 from telegram.error import TelegramError
+from colorama import Fore, Style
 
 
 class NovncyBot:
@@ -10,14 +11,18 @@ class NovncyBot:
 
     async def send_message(self, channel_name: str, message: str):
         try:
+            print(f"{Fore.CYAN}-posting on telegram{Style.RESET_ALL}")
             await self.bot.send_message(chat_id=channel_name, text=message, parse_mode=ParseMode.HTML)
+            print(f"{Fore.GREEN}+posting done{Style.RESET_ALL}")
         except TelegramError as e:
             raise Exception(f"{Fore.RED}telegram: {e}{Style.RESET_ALL}")
 
     async def send_image(self, channel_name: str, image_url: str, message: str):
         try:
+            print(f"{Fore.CYAN}-posting on telegram{Style.RESET_ALL}")
             await self.bot.send_photo(chat_id=channel_name, photo=image_url,
                                       caption=message, parse_mode=ParseMode.HTML)
+            print(f"{Fore.GREEN}+posting done{Style.RESET_ALL}")
         except TelegramError as e:
             raise Exception(f"{Fore.RED}telegram: {e}{Style.RESET_ALL}")
 

@@ -2,6 +2,7 @@ import asyncio
 import os
 import platform
 from deepdiff import DeepDiff, DeepHash
+from tqdm import tqdm
 
 from chatgpt_translation import ChatGPTTranslator
 from telegram_bot import NovncyBot
@@ -27,6 +28,7 @@ class Parser:
         self._prev_soup = None
         self._curr_list = None
         self._prev_list = None
+        self._translator = ChatGPTTranslator()
         # initializing the chrome driver
         # Chrome options to run in headless mode
         chrome_options = Options()
@@ -127,6 +129,8 @@ class Parser:
             for added_item in diff['iterable_item_added']:
                 new_posts.append(added_item)
 
+            if not new_posts:
+                print(f"{Fore.YELLOW}no new posts{Style.RESET_ALL}")
         return new_posts
 
     async def __poster(self, index: int, raw_post: dict, rtl=True) -> None:
@@ -134,10 +138,14 @@ class Parser:
         # also
         # you can add the unicode to each part here also
         # if rtl:
+        print(f"{Fore.YELLOW}translating post :{index}{Style.RESET_ALL}")
+        response_dict = self._translator.translate(caption=raw_post['title_text'], body=raw_post['overview'])
 
-        translator = ChatGPTTranslator()
-        response_dict = translator.translate(caption=raw_post['title_text'], body=raw_post['overview'])
-        title, body = response_dict
+        if 'main_body' and 'caption' in response_dict:
+            title, body = response_dict
+        else:
+            print(f"{Fore.YELLOW}response_dict: {response_dict}{Style.RESET_ALL}")
+            return
 
         if rtl:
             formatted_post = (f"<b>{'\u200F' + response_dict[title]}</b>"
@@ -161,12 +169,16 @@ class Parser:
                                        message=formatted_post)
         else:
             await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=formatted_post)
+        print(f"{Fore.GREEN}* * * * * * * * * *{Style.RESET_ALL}")
 
     async def __compose(self):
+        new_posts = []
         # if current list not empty, continue
         if not self._curr_list:
+            print(f"{Fore.RED}empty list, debugging info: {self._curr_list}{Style.RESET_ALL}")
             return
 
+        print(f"{Fore.YELLOW}{self._counter} iteration{Style.RESET_ALL}")
         if self._counter != 0:
             new_posts = self.__find_diff()
             # if self._curr_list[-1]['time'] == self._prev_list[-1]['time']:
@@ -176,21 +188,30 @@ class Parser:
         self._counter += 1
 
         # post the result
-        for key, value in enumerate(new_posts):
-            await self.__poster(index=key, raw_post=value)
+        if new_posts:
+            for key, value in enumerate(new_posts):
+                await self.__poster(index=key, raw_post=value)
 
     @staticmethod
     async def timer(duration, func, *args, **kwargs):
         await func(*args, **kwargs)
-        await asyncio.sleep(duration)
+        # timer here
+        while duration > 0:
+            for i in tqdm(range(duration), desc="countdown", unit="second"):
+                await asyncio.sleep(1)
+                duration -= 1
 
     async def get_update(self):
         if self._interval <= 0:
             return None
 
         while True:
+            print(f"{Fore.CYAN}- - - - - - - - - -{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}-fetching new list{Style.RESET_ALL}")
             self._prev_soup = self._curr_soup
             self._curr_soup = self.__initialize_soup()
             self._prev_list = self._curr_list
             self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
+            print(f"{Fore.GREEN}+fetching done{Style.RESET_ALL}")
             await self.timer(self._interval, self.__compose)
+            print(f"{Fore.CYAN}- - - - - - - - - -{Style.RESET_ALL}")

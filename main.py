@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 from colorama import Fore, Style
 
@@ -11,11 +12,12 @@ load_dotenv('.env.development')
 
 async def main():
     try:
-        engine = Parser(url=os.getenv("URL"), interval=60, latest=5)
+        engine = Parser(url=os.getenv("URL"), interval=20, latest=3)
         await engine.get_update()
 
     except Exception as e:
-        print(f"{Fore.RED}Error sending message: {e}{Style.RESET_ALL}")
+        print(f"{Fore.RED}an Error occurred in the main: {e}{Style.RESET_ALL}")
+        traceback.print_exc()
 
 
 if __name__ == '__main__':

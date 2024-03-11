@@ -15,6 +15,8 @@ class ChatGPTTranslator:
 
     def translate(self, caption, body, target_language="Persian", except_following="URLs and numbers"):
         try:
+            response_dict = None
+
             headers = {
                 'Content-Type': 'application/json',
                 'Authorization': f'Bearer {self._api_key}'
@@ -39,7 +41,11 @@ class ChatGPTTranslator:
             # Get the response data
             response_data = response.json()
             # Extract the completion text from the response
-            response_dict = json.loads(response_data['choices'][0]['message']['content'])
+            if 'choices' in response_data:
+                # Access the 'choices' key here
+                response_dict = json.loads(response_data['choices'][0]['message']['content'])
+            else:
+                print(f"{Fore.YELLOW}empty choices in response: {response_data}{Style.RESET_ALL}")
             return response_dict
 
         except requests.RequestException as e:
