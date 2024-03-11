@@ -126,8 +126,8 @@ class Parser:
             for added_item in diff['iterable_item_added']:
                 new_posts.append(added_item)
 
-            if not new_posts:
-                print(f"{Fore.YELLOW}no new posts{Style.RESET_ALL}")
+        if not new_posts:
+            print(f"{Fore.YELLOW}no new posts{Style.RESET_ALL}")
         return new_posts
 
     async def __poster(self, index: int, raw_post: dict, rtl=True) -> None:
