@@ -1,4 +1,5 @@
 import asyncio
+import sys
 import traceback
 
 from colorama import Fore, Style
@@ -12,7 +13,24 @@ load_dotenv('.env.development')
 
 async def main():
     try:
-        engine = Parser(url=os.getenv("URL"), interval=20, latest=3)
+        if len(sys.argv) < 2:
+            print("usage: python main.py [environment=development|production]")
+            return
+
+        environment = sys.argv[1]
+
+        if environment == "development":
+            dotenv_file = ".env.development"
+        elif environment == "production":
+            dotenv_file = ".env.production"
+        else:
+            print("Invalid environment specified. Use 'development' or 'production'.")
+            return
+        # load env
+        load_dotenv(dotenv_file)
+
+        # running the engine
+        engine = Parser(url=os.getenv("URL"), interval=40, latest=3)
         await engine.get_update()
 
     except Exception as e:

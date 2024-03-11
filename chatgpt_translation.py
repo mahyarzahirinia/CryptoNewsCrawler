@@ -3,9 +3,6 @@ import os
 
 import requests
 from colorama import Fore, Style
-from dotenv import load_dotenv
-
-load_dotenv('.env.development')
 
 
 class ChatGPTTranslator:

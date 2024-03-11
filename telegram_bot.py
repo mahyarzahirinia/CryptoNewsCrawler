@@ -1,3 +1,5 @@
+import os
+
 import telegram
 from telegram import Bot
 from telegram.constants import ParseMode
@@ -6,8 +8,8 @@ from colorama import Fore, Style
 
 
 class NovncyBot:
-    def __init__(self, token: str):
-        self.bot = Bot(token=token)
+    def __init__(self):
+        self.bot = Bot(token=os.getenv("BOT_TOKEN"))
 
     async def send_message(self, channel_name: str, message: str):
         try:

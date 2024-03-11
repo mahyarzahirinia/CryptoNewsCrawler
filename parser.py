@@ -12,9 +12,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from bs4 import BeautifulSoup
 from colorama import Fore, Style
-from dotenv import load_dotenv
-
-load_dotenv('.env.development')
 
 
 class Parser:
@@ -44,7 +41,7 @@ class Parser:
         # self._chrome.get("https://www.google.com/")
         self._chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
         # starting the bot and getting the first result
-        self._bot = NovncyBot(token=os.getenv("BOT_TOKEN"))
+        self._bot = NovncyBot()
         self._curr_soup = self.__initialize_soup()
         self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
 
