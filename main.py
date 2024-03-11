@@ -1,14 +1,12 @@
 import asyncio
 import sys
 import traceback
+import os
 
 from colorama import Fore, Style
 
 from parser import Parser
 from dotenv import load_dotenv
-import os
-
-load_dotenv('.env.development')
 
 
 async def main():
