@@ -1,7 +1,9 @@
 import asyncio
 import os
 import platform
-from deepdiff import DeepDiff, DeepHash
+import datetime
+
+from deepdiff import DeepHash
 from tqdm import tqdm
 
 from chatgpt_translation import ChatGPTTranslator
@@ -63,6 +65,23 @@ class Parser:
             raise RuntimeError(f"{Fore.RED}Failed to fetch the page: {e}{Style.RESET_ALL}")
 
     @staticmethod
+    def remove_duplicates(list_: list):
+        for x in list_:
+
+            for y in list_:
+
+
+
+    @staticmethod
+    async def timer(duration, func, *args, **kwargs):
+        await func(*args, **kwargs)
+        # timer here
+        while duration > 0:
+            for i in tqdm(range(duration), desc="countdown", unit="second"):
+                await asyncio.sleep(1)
+                duration -= 1
+
+    @staticmethod
     def __coinmarketcap_stripper(soup_instance: BeautifulSoup):
         # all the news items have parent div with class of uikit-row
         if soup_instance is None:
@@ -116,18 +135,35 @@ class Parser:
         return all_news
 
     def __find_diff(self) -> list:
+        new_posts = []
         current_list = self._curr_list[-self._latest:]
         previous_list = self._prev_list[-self._latest:]
 
-        diff = DeepDiff(current_list, previous_list, ignore_order=True)
-        new_posts = []
+        # -- constructing new posts if available
+        # length of each list is 3 so peer to peer comparison would be ok
+        for index, value in enumerate(current_list):
+            current_time = datetime.datetime.strptime(current_list[index]['time'], '%H:%M')
+            previous_time = datetime.datetime.strptime(previous_list[index]['time'], '%H:%M')
+            if current_time > previous_time:
+                new_posts.append(current_list[index])
+            elif current_time == previous_time:
+                # here get the hash of the objects to compare
+                current_post_hash = DeepHash(current_list)[current_list]
+                previous_post_hash = DeepHash(current_list)[current_list]
+                if current_post_hash != previous_post_hash:
+                    new_posts.append(current_list[index])
+                else:
+                    break
+            else:
+                new_posts.append(previous_list[index])
 
-        if 'iterable_item_added' in diff:
-            for added_item in diff['iterable_item_added']:
-                new_posts.append(added_item)
-
-        if not new_posts:
+        # -- removing duplicate entries by converting list to set
+        # and converting it back to list
+        if new_posts:
+            new_posts = self.remove_duplicates(new_posts)
+        elif not new_posts:
             print(f"{Fore.YELLOW}no new posts{Style.RESET_ALL}")
+
         return new_posts
 
     async def __poster(self, index: int, raw_post: dict, rtl=True) -> None:
@@ -178,25 +214,15 @@ class Parser:
         print(f"{Fore.YELLOW}{self._counter} iteration{Style.RESET_ALL}")
         if self._counter != 0:
             new_posts = self.__find_diff()
-            # if self._curr_list[-1]['time'] == self._prev_list[-1]['time']:
-            #     return
         else:
             new_posts = self._curr_list[-self._latest:]
+            new_posts = self.remove_duplicates(new_posts)
         self._counter += 1
 
         # post the result
         if new_posts:
             for key, value in enumerate(new_posts):
                 await self.__poster(index=key, raw_post=value)
-
-    @staticmethod
-    async def timer(duration, func, *args, **kwargs):
-        await func(*args, **kwargs)
-        # timer here
-        while duration > 0:
-            for i in tqdm(range(duration), desc="countdown", unit="second"):
-                await asyncio.sleep(1)
-                duration -= 1
 
     async def get_update(self):
         if self._interval <= 0:

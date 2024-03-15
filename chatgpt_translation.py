@@ -27,7 +27,7 @@ class ChatGPTTranslator:
                      "content": f"translate the input from English"
                                 f"to {target_language} "
                                 f"except for the {except_following} "
-                                f"and put the translated caption and main body seperated in a json"},
+                                f"and return the translated caption and main_body seperated in a json"},
                     {"role": "user", "content": caption+"\n\n"+body}
                 ]
             }
@@ -43,6 +43,7 @@ class ChatGPTTranslator:
                 response_dict = json.loads(response_data['choices'][0]['message']['content'])
             else:
                 print(f"{Fore.YELLOW}empty choices in response: {response_data}{Style.RESET_ALL}")
+                return
             return response_dict
 
         except requests.RequestException as e:
