@@ -20,14 +20,15 @@ class ChatGPTTranslator:
             }
             # Define the request payload
             data = {
-                'model': 'gpt-3.5-turbo',  # or another model like 'davinci'
+                'model': 'gpt-3.5-turbo-0125',
                 'response_format': {'type': 'json_object'},
                 'messages': [
                     {"role": "system",
-                     "content": f"translate the input from English"
+                     "content": f"translate the input text from English"
                                 f"to {target_language} "
                                 f"except for the {except_following} "
-                                f"and return the translated caption and main_body seperated in a json"},
+                                f"and return the translated caption and "
+                                f"main_body separated in a json"},
                     {"role": "user", "content": caption+"\n\n"+body}
                 ]
             }
