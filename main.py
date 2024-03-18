@@ -28,7 +28,7 @@ async def main():
         load_dotenv(dotenv_file)
 
         # running the engine
-        engine = Parser(url=os.getenv("URL"), interval=40, latest=3)
+        engine = Parser(url=os.getenv("URL"), interval=40, latest=4)
         await engine.get_update()
 
     except Exception as e:

@@ -65,12 +65,16 @@ class Parser:
             raise RuntimeError(f"{Fore.RED}Failed to fetch the page: {e}{Style.RESET_ALL}")
 
     @staticmethod
-    def remove_duplicates(list_: list):
-        for x in list_:
-
-            for y in list_:
-
-
+    def remove_duplicates(list_: list, field='caption') -> None:
+        # for x, x_value in enumerate(list_):
+        #     for y, y_value in enumerate(list_):
+        #         if y_value[field] == x_value[field]:
+        #             del list_[y]
+        for x, x_value in enumerate(list_):
+            for y, y_value in enumerate(list_):
+                if x != y:
+                    if x_value[field] == y_value[field]:
+                        del list_[y]
 
     @staticmethod
     async def timer(duration, func, *args, **kwargs):
@@ -137,30 +141,24 @@ class Parser:
     def __find_diff(self) -> list:
         new_posts = []
         current_list = self._curr_list[-self._latest:]
+        self.remove_duplicates(current_list, 'overview')
         previous_list = self._prev_list[-self._latest:]
+        self.remove_duplicates(previous_list, 'overview')
 
         # -- constructing new posts if available
         # length of each list is 3 so peer to peer comparison would be ok
-        for index, value in enumerate(current_list):
-            current_time = datetime.datetime.strptime(current_list[index]['time'], '%H:%M')
-            previous_time = datetime.datetime.strptime(previous_list[index]['time'], '%H:%M')
-            if current_time > previous_time:
-                new_posts.append(current_list[index])
-            elif current_time == previous_time:
-                # here get the hash of the objects to compare
-                current_post_hash = DeepHash(current_list)[current_list]
-                previous_post_hash = DeepHash(current_list)[current_list]
-                if current_post_hash != previous_post_hash:
-                    new_posts.append(current_list[index])
-                else:
-                    break
-            else:
-                new_posts.append(previous_list[index])
+        for x, x_value in enumerate(current_list):
+            for y, y_value in enumerate(previous_list):
+                current_time = datetime.datetime.strptime(current_list[x]['time'], '%H:%M')
+                previous_time = datetime.datetime.strptime(previous_list[y]['time'], '%H:%M')
+                if current_time > previous_time:
+                    if current_list[x]['overview'] != previous_list[y]['overview']:
+                        new_posts.append(current_list[y])
 
         # -- removing duplicate entries by converting list to set
         # and converting it back to list
         if new_posts:
-            new_posts = self.remove_duplicates(new_posts)
+            self.remove_duplicates(new_posts, 'overview')
         elif not new_posts:
             print(f"{Fore.YELLOW}no new posts{Style.RESET_ALL}")
 
@@ -216,7 +214,7 @@ class Parser:
             new_posts = self.__find_diff()
         else:
             new_posts = self._curr_list[-self._latest:]
-            new_posts = self.remove_duplicates(new_posts)
+            self.remove_duplicates(new_posts, 'overview')
         self._counter += 1
 
         # post the result
