@@ -179,7 +179,8 @@ class Parser:
             return
 
         if rtl:
-            formatted_post = (f"<b>{'\u200F' + response_dict[title]}</b>"
+            formatted_post = (f"<blockquote>اخبار</blockquote>"
+                              f"<b>{'\u200F' + response_dict[title]}</b>"
                               f"\n⏰ {raw_post['time']}"
                               f"\n\n{'\u200F' + response_dict[body]}"
                               f"\n💰 منبع: {raw_post['source']}"
