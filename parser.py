@@ -3,7 +3,8 @@ import os
 import platform
 import datetime
 
-from deepdiff import DeepHash
+from deepdiff import DeepDiff
+from deepdiff.helper import CannotCompare
 from tqdm import tqdm
 
 from chatgpt_translation import ChatGPTTranslator
@@ -66,10 +67,8 @@ class Parser:
 
     @staticmethod
     def remove_duplicates(list_: list, field='caption') -> None:
-        # for x, x_value in enumerate(list_):
-        #     for y, y_value in enumerate(list_):
-        #         if y_value[field] == x_value[field]:
-        #             del list_[y]
+        if not list_:
+            return None
         for x, x_value in enumerate(list_):
             for y, y_value in enumerate(list_):
                 if x != y:
@@ -106,6 +105,8 @@ class Parser:
                 title_url = anchor.get('href')
                 title_text = anchor.text
                 overview = section.find('p', class_="hLvDsV").text
+                date_time = datetime.datetime.strptime(time, "%H:%M")
+                is_posted = False
 
                 # extra part has 2 divs
                 # first one includes source of the news
@@ -124,7 +125,9 @@ class Parser:
                     assets.append({'img': asset_img, 'text': asset_text})
 
                 all_news.append(
-                    {'time': time,
+                    {'date_time': date_time,
+                     'is_posted': is_posted,
+                     'time': time,
                      'image': image,
                      'title_url': title_url,
                      'title_text': title_text,
@@ -147,13 +150,15 @@ class Parser:
 
         # -- constructing new posts if available
         # length of each list is 3 so peer to peer comparison would be ok
-        for x, x_value in enumerate(current_list):
-            for y, y_value in enumerate(previous_list):
-                current_time = datetime.datetime.strptime(current_list[x]['time'], '%H:%M')
-                previous_time = datetime.datetime.strptime(previous_list[y]['time'], '%H:%M')
-                if current_time > previous_time:
-                    if current_list[x]['overview'] != previous_list[y]['overview']:
-                        new_posts.append(current_list[y])
+        diff = DeepDiff(current_list, previous_list, ignore_order=False)
+
+        for change_type, changes in diff.items():
+            if change_type == 'values_changed':
+                for key, change_info in changes.items():
+                    if 'root' in key and 'time' in key:
+                        index = int(key.split('[')[1].split(']')[0])
+                        if current_list[index]['time'] > previous_list[index]['time'] and not current_list[index]['is_posted']:
+                            new_posts.append(current_list[index])
 
         # -- removing duplicate entries by converting list to set
         # and converting it back to list
@@ -211,17 +216,20 @@ class Parser:
             return
 
         print(f"{Fore.YELLOW}{self._counter} iteration{Style.RESET_ALL}")
-        if self._counter != 0:
-            new_posts = self.__find_diff()
-        else:
+        if self._counter == 0:
             new_posts = self._curr_list[-self._latest:]
-            self.remove_duplicates(new_posts, 'overview')
+        else:
+            new_posts = self.__find_diff()
         self._counter += 1
+        self.remove_duplicates(new_posts, 'overview')
 
         # post the result
         if new_posts:
             for key, value in enumerate(new_posts):
-                await self.__poster(index=key, raw_post=value)
+                if not value['is_posted']:
+                    await self.__poster(index=key, raw_post=value)
+                    # check if posted then make the is_posted true
+                    new_posts[key]['is_posted'] = True
 
     async def get_update(self):
         if self._interval <= 0:

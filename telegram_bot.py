@@ -27,6 +27,8 @@ class NovncyBot:
             print(f"{Fore.GREEN}+posting done{Style.RESET_ALL}")
         except TelegramError as e:
             raise Exception(f"{Fore.RED}telegram: {e}{Style.RESET_ALL}")
+        finally:
+            return
 
     async def get_message(self, channel_name: str):
         updates = await self.bot.get_updates(chat_id=channel_name, limit=1)
