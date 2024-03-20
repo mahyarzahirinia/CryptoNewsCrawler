@@ -50,7 +50,6 @@ class Parser:
 
     def __initialize_soup(self):
         try:
-
             self._chrome.get(self._url)
             # Wait for JavaScript to render the page content
             # You might need to adjust the waiting time according to the page's loading speed
@@ -63,7 +62,8 @@ class Parser:
             return BeautifulSoup(page_source, 'html.parser')
         except RequestException as e:
             # If an error occurs during the request, print the error message
-            raise RuntimeError(f"{Fore.RED}Failed to fetch the page: {e}{Style.RESET_ALL}")
+            print(f"{Fore.RED}Failed to fetch the page: {e}{Style.RESET_ALL}")
+            return
 
     @staticmethod
     def remove_duplicates(list_: list, field='caption') -> None:
@@ -138,6 +138,7 @@ class Parser:
             except (AttributeError, KeyError) as e:
                 # Handle the exception (e.g., print a message, log, or ignore)
                 print(f"{Fore.RED}error processing news sections {index}: {e}{Style.RESET_ALL}")
+                return
         all_news.reverse()
         return all_news
 
@@ -177,11 +178,10 @@ class Parser:
         print(f"{Fore.YELLOW}translating post :{index}{Style.RESET_ALL}")
         response_dict = self._translator.translate(caption=raw_post['title_text'], body=raw_post['overview'])
 
-        if 'main_body' and 'caption' in response_dict:
-            title, body = response_dict
-        else:
-            print(f"{Fore.YELLOW}response_dict: {response_dict}{Style.RESET_ALL}")
+        if not response_dict:
             return
+        else:
+            title, body = response_dict
 
         if rtl:
             formatted_post = (f"<blockquote>اخبار</blockquote>"

@@ -26,8 +26,7 @@ class NovncyBot:
                                       caption=message, parse_mode=ParseMode.HTML)
             print(f"{Fore.GREEN}+posting done{Style.RESET_ALL}")
         except TelegramError as e:
-            raise Exception(f"{Fore.RED}telegram: {e}{Style.RESET_ALL}")
-        finally:
+            print(f"{Fore.RED}telegram: {e}{Style.RESET_ALL}")
             return
 
     async def get_message(self, channel_name: str):

@@ -29,7 +29,7 @@ class ChatGPTTranslator:
                                 f"except for the {except_following} "
                                 f"and return the translated caption and "
                                 f"main_body separated in a json"},
-                    {"role": "user", "content": caption+"\n\n"+body}
+                    {"role": "user", "content": caption + "\n\n" + body}
                 ]
             }
 
@@ -45,7 +45,18 @@ class ChatGPTTranslator:
             else:
                 print(f"{Fore.YELLOW}empty choices in response: {response_data}{Style.RESET_ALL}")
                 return
-            return response_dict
+
+            try:
+                if 'main_body' and 'caption' in response_dict:
+                    title, body = response_dict
+                    return {'title': response_dict[title], 'body': response_dict[body]}
+                else:
+                    print(f"{Fore.YELLOW}response_dict: {response_dict}{Style.RESET_ALL}")
+                    return
+            except Exception as e:
+                print(f"{Fore.RED}error: {e}{Style.RESET_ALL}")
+                return
 
         except requests.RequestException as e:
-            raise Exception(f"{Fore.RED}chatgpt: {e}{Style.RESET_ALL}")
+            print(f"{Fore.RED}chatgpt: {e}{Style.RESET_ALL}")
+            return
