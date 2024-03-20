@@ -22,6 +22,7 @@ class ChatGPTTranslator:
             data = {
                 'model': 'gpt-3.5-turbo-0125',
                 'response_format': {'type': 'json_object'},
+                'temperature': 0.45,
                 'messages': [
                     {"role": "system",
                      "content": f"translate the input text from English"
