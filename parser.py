@@ -158,7 +158,8 @@ class Parser:
                 for key, change_info in changes.items():
                     if 'root' in key and 'time' in key:
                         index = int(key.split('[')[1].split(']')[0])
-                        if current_list[index]['time'] > previous_list[index]['time'] and not current_list[index]['is_posted']:
+                        if (current_list[index]['date_time'] > previous_list[index]['date_time']
+                                and not current_list[index]['is_posted']):
                             new_posts.append(current_list[index])
 
         # -- removing duplicate entries by converting list to set
