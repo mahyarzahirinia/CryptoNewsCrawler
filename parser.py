@@ -144,30 +144,31 @@ class Parser:
 
     def __find_diff(self) -> list:
         new_posts = []
-        current_list = self._curr_list[-self._latest:]
-        self.remove_duplicates(current_list, 'overview')
-        previous_list = self._prev_list[-self._latest:]
-        self.remove_duplicates(previous_list, 'overview')
+        if self._curr_list and self._prev_list:
+            current_list = self._curr_list[-self._latest:]
+            self.remove_duplicates(current_list, 'overview')
+            previous_list = self._prev_list[-self._latest:]
+            self.remove_duplicates(previous_list, 'overview')
 
-        # -- constructing new posts if available
-        # length of each list is 3 so peer to peer comparison would be ok
-        diff = DeepDiff(current_list, previous_list, ignore_order=False)
+            # -- constructing new posts if available
+            # length of each list is 3 so peer to peer comparison would be ok
+            diff = DeepDiff(current_list, previous_list, ignore_order=False)
 
-        for change_type, changes in diff.items():
-            if change_type == 'values_changed':
-                for key, change_info in changes.items():
-                    if 'root' in key and 'time' in key:
-                        index = int(key.split('[')[1].split(']')[0])
-                        if (current_list[index]['date_time'] > previous_list[index]['date_time']
-                                and not current_list[index]['is_posted']):
-                            new_posts.append(current_list[index])
+            for change_type, changes in diff.items():
+                if change_type == 'values_changed':
+                    for key, change_info in changes.items():
+                        if 'root' in key and 'time' in key:
+                            index = int(key.split('[')[1].split(']')[0])
+                            if (current_list[index]['date_time'] > previous_list[index]['date_time']
+                                    and not current_list[index]['is_posted']):
+                                new_posts.append(current_list[index])
 
-        # -- removing duplicate entries by converting list to set
-        # and converting it back to list
-        if new_posts:
-            self.remove_duplicates(new_posts, 'overview')
-        elif not new_posts:
-            print(f"{Fore.YELLOW}no new posts{Style.RESET_ALL}")
+            # -- removing duplicate entries by converting list to set
+            # and converting it back to list
+            if new_posts:
+                self.remove_duplicates(new_posts, 'overview')
+            elif not new_posts:
+                print(f"{Fore.YELLOW}no new posts{Style.RESET_ALL}")
 
         return new_posts
 

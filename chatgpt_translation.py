@@ -42,7 +42,11 @@ class ChatGPTTranslator:
             # Extract the completion text from the response
             if 'choices' in response_data:
                 # Access the 'choices' key here
-                response_dict = json.loads(response_data['choices'][0]['message']['content'])
+                try:
+                    response_dict = json.loads(response_data['choices'][0]['message']['content'])
+                except json.decoder.JSONDecodeError as e:
+                    print(f"{Fore.RED}error when loading json: {e}{Style.RESET_ALL}")
+                    return
             else:
                 print(f"{Fore.YELLOW}empty choices in response: {response_data}{Style.RESET_ALL}")
                 return
