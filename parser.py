@@ -186,7 +186,7 @@ class Parser:
             title, body = response_dict
 
         if rtl:
-            formatted_post = (f"<blockquote>اخبار</blockquote>"
+            formatted_post = (f"<blockquote>اخبار: </blockquote>"
                               f"<b>{'\u200F' + response_dict[title]}</b>"
                               f"\n⏰ {raw_post['time']}"
                               f"\n\n{'\u200F' + response_dict[body]}"
