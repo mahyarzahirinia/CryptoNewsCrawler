@@ -204,10 +204,10 @@ class Parser:
                               f"\n🇮🇷 @NOVNCY")
 
         if raw_post["image"] is not None:
-            await self._bot.send_image(channel_name=os.getenv("CHANNEL_NAME"), image_url=raw_post['image'],
-                                       message=formatted_post)
+            await self._bot.send_with_image(channel_name=os.getenv("CHANNEL_NAME"), image_url=raw_post['image'],
+                                            message=formatted_post)
         else:
-            await self._bot.send_message(channel_name=os.getenv("CHANNEL_NAME"), message=formatted_post)
+            await self._bot.send_with_message(channel_name=os.getenv("CHANNEL_NAME"), message=formatted_post)
         print(f"{Fore.GREEN}* * * * * * * * * *{Style.RESET_ALL}")
 
     async def __compose(self):
