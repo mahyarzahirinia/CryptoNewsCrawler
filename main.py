@@ -28,7 +28,8 @@ async def main():
         load_dotenv(dotenv_file)
 
         # running the engine
-        engine = Parser(url=os.getenv("URL"), interval=60, latest=4)
+        interval = int(os.getenv("INITIAL_NEWS_FETCH_INTERVAL"))
+        engine = Parser(url=os.getenv("URL"), interval=interval, latest=4)
         await engine.get_update()
 
     except Exception as e:

@@ -45,6 +45,7 @@ class Parser:
         self._chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
         # starting the bot and getting the first result
         self._bot = NovncyBot()
+        self._bot.run_interactive()
         self._curr_soup = self.__initialize_soup()
         self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
 
@@ -64,6 +65,10 @@ class Parser:
             # If an error occurs during the request, print the error message
             print(f"{Fore.RED}Failed to fetch the page: {e}{Style.RESET_ALL}")
             return
+
+    def change_duration(self, new_duration):
+        if new_duration > 0:
+            self._interval = new_duration
 
     @staticmethod
     def remove_duplicates(list_: list, field='caption') -> None:
