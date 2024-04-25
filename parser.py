@@ -189,6 +189,7 @@ class Parser:
         # also
         # you can add the unicode to each part here also
         # if rtl:
+        tags = "NEWS"
         print(f"{Fore.YELLOW}translating post :{index}{Style.RESET_ALL}")
         response_dict = self._translator.translate(caption=raw_post['title_text'], body=raw_post['overview'])
 
@@ -206,9 +207,9 @@ class Parser:
                               f"\n\n{'\u200F' + response_dict[body]}"
                               f"\n💰 منبع: {raw_post['source']}"
                               f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>مطالعه بیشتر...</a>"
-                              f"\n🔬 <a href='https://t.me/novncy'>🇮🇷 novncy کانال</a>"
+                              f"\n{'\u200F'}💸 <a href='https://t.me/novncy'>NOVNCY</a>"
                               f"\n"
-                              f"'\u200F'+ تگ ها:"
+                              f"{'\u200F' + 'تگ ها:'}"
                               f"\n{tags}")
         else:
             formatted_post = (f"<b>{response_dict[title]}</b>"
