@@ -45,7 +45,7 @@ class Parser:
         self._chrome.execute_cdp_cmd('Network.setCacheDisabled', {'cacheDisabled': True})
         # starting the bot and getting the first result
         self._bot = NovncyBot()
-        self._bot.run_interactive()
+        # self._bot.run_interactive()
         self._curr_soup = self.__initialize_soup()
         self._curr_list = self.__coinmarketcap_stripper(self._curr_soup)
 
@@ -177,6 +177,13 @@ class Parser:
 
         return new_posts
 
+    @staticmethod
+    def __create_tags(arr: list, field="text"):
+        returnee = ""
+        for element in arr:
+            returnee = f"{returnee} #{element[field]}"
+        return returnee
+
     async def __poster(self, index: int, raw_post: dict, rtl=True) -> None:
         # determine rtl here to avoid duplications
         # also
@@ -190,6 +197,8 @@ class Parser:
         else:
             title, body = response_dict
 
+        tags = self.__create_tags(raw_post['assets'])
+
         if rtl:
             formatted_post = (f"<blockquote>اخبار: </blockquote>"
                               f"<b>{'\u200F' + response_dict[title]}</b>"
@@ -197,8 +206,10 @@ class Parser:
                               f"\n\n{'\u200F' + response_dict[body]}"
                               f"\n💰 منبع: {raw_post['source']}"
                               f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>مطالعه بیشتر...</a>"
+                              f"\n🔬 <a href='https://t.me/novncy'>🇮🇷 novncy کانال</a>"
                               f"\n"
-                              f"\n🇮🇷 @NOVNCY")
+                              f"'\u200F'+ تگ ها:"
+                              f"\n{tags}")
         else:
             formatted_post = (f"<b>{response_dict[title]}</b>"
                               f"\n⏰ {raw_post['time']}"
