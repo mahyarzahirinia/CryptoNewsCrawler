@@ -103,7 +103,8 @@ class Parser:
         all_news = []
         all_sections = soup_instance.find_all('div', class_="uikit-row")
         if isinstance(all_sections, list):
-            all_sections.pop(0)
+            if all_sections:
+                all_sections.pop(0)
         else:
             raise TypeError("the type of all_sections is not a list")
 
