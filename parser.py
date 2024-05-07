@@ -214,7 +214,7 @@ class Parser:
                                   f"\n⏰ {raw_post['time']}"
                                   f"\n\n{'\u200F' + response_dict[body]}"
                                   f"\n💰 منبع: {raw_post['source']}"
-                                  f"\n🔬 <a href='https://coinmarketcap.com/headlines/news/{raw_post['title_url']}'>مطالعه بیشتر...</a>"
+                                  f"\n🔬 <a href='{raw_post['title_url']}'>مطالعه بیشتر...</a>"
                                   f"\n{'\u200F'}💸 <a href='https://t.me/novncy'>NOVNCY</a>"
                                   f"\n"
                                   f"{'\u200F' + 'تگ ها:'}"
