@@ -285,4 +285,5 @@ class Parser:
             except Exception as e:
                 # If an error occurs during the request, print the error message
                 print(f"{Fore.RED}error while updating: {e}{Style.RESET_ALL}")
-                break
+                # to make the loop jump to next iteration
+                continue
